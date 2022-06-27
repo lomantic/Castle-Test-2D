@@ -14,8 +14,8 @@ GameObject:
   - component: {fileID: 6274895228421148725}
   - component: {fileID: 3969294856925443922}
   - component: {fileID: 12657511}
-  - component: {fileID: 2449474213940275592}
-  m_Layer: 0
+  - component: {fileID: 12657512}
+  m_Layer: 8
   m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -76,7 +76,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1092532369
-  m_SortingLayer: 3
+  m_SortingLayer: 5
   m_SortingOrder: 0
   m_Sprite: {fileID: -816109240, guid: 13de0718850601643944cd715590838e, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -170,8 +170,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   runSpeed: 5
   jumpSpeed: 10
---- !u!68 &2449474213940275592
-EdgeCollider2D:
+  climbSpeed: 5
+--- !u!60 &12657512
+PolygonCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -184,11 +185,17 @@ EdgeCollider2D:
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
-  m_EdgeRadius: 0
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 1.15625, y: 0.875}
+    newSize: {x: 1.15625, y: 0.875}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
   m_Points:
-  - {x: 0.1237092, y: -0.09779656}
-  - {x: 0.12365842, y: -0.74210334}
-  m_AdjacentStartPoint: {x: 0, y: 0}
-  m_AdjacentEndPoint: {x: 0, y: 0}
-  m_UseAdjacentStartPoint: 0
-  m_UseAdjacentEndPoint: 0
+    m_Paths:
+    - - {x: 0.13742948, y: 0.12545478}
+      - {x: -0.09903598, y: -0.44369256}
+      - {x: 0.32877636, y: -0.44369256}

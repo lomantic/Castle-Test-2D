@@ -7,10 +7,12 @@ public class Player : MonoBehaviour
 {
   [SerializeField] float runSpeed = 5f;
   [SerializeField] float jumpSpeed = 10f;
+  [SerializeField] float climbSpeed = 5f;
   Rigidbody2D myRigidBody2D;
   Animator myAnimator;
   BoxCollider2D myBoxCollider2D;
   PolygonCollider2D myPolygonCollider2D;
+  float startingGravityScale = 0.0f;
   int jumpCnt = 0;
 
   // Start is called before the first frame update
@@ -20,6 +22,7 @@ public class Player : MonoBehaviour
     myAnimator = GetComponent<Animator>();
     myBoxCollider2D = GetComponent<BoxCollider2D>();
     myPolygonCollider2D = GetComponent<PolygonCollider2D>();
+    startingGravityScale = myRigidBody2D.gravityScale;
   }
 
   // Update is called once per frame
@@ -27,6 +30,7 @@ public class Player : MonoBehaviour
   {
     Run();
     Jump();
+    Climb();
   }
   private void Run()
   {
@@ -42,6 +46,11 @@ public class Player : MonoBehaviour
   {
     bool runHorizontal = Mathf.Abs(myRigidBody2D.velocity.x) > Mathf.Epsilon;
     myAnimator.SetBool("Run", runHorizontal);
+  }
+  private void ChangeStateToClimb()
+  {
+    bool climbHorizontal = Mathf.Abs(myRigidBody2D.velocity.y) > Mathf.Epsilon;
+    myAnimator.SetBool("Climb", climbHorizontal);
   }
   private void FlipSprite()
   {
@@ -85,4 +94,21 @@ public class Player : MonoBehaviour
 
   }
 
+  private void Climb()
+  {
+    if (myBoxCollider2D.IsTouchingLayers(LayerMask.GetMask("Climb")))
+    {
+      float controlThrow = CrossPlatformInputManager.GetAxis("Vertical");
+      Vector2 climbVelocity = new Vector2(myRigidBody2D.velocity.x, controlThrow * climbSpeed);
+      myRigidBody2D.velocity = climbVelocity;
+      myRigidBody2D.gravityScale = 0f;
+    }
+    else
+    {
+      myRigidBody2D.gravityScale = startingGravityScale;
+    }
+    ChangeStateToClimb();
+  }
+
 }
+
