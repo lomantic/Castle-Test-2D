@@ -137,7 +137,7 @@ GameObject:
   - component: {fileID: 489695089}
   - component: {fileID: 489695091}
   - component: {fileID: 489695090}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Foreground
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4760,6 +4760,14 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2449474213940275592, guid: 91bf544c4efad8f488107289ea71eb0c, type: 3}
+      propertyPath: m_Points.Array.data[1].x
+      value: 0.12365842
+      objectReference: {fileID: 0}
+    - target: {fileID: 2449474213940275592, guid: 91bf544c4efad8f488107289ea71eb0c, type: 3}
+      propertyPath: m_Points.Array.data[1].y
+      value: -1.3669325
+      objectReference: {fileID: 0}
     - target: {fileID: 6274895228421148721, guid: 91bf544c4efad8f488107289ea71eb0c, type: 3}
       propertyPath: m_Name
       value: Player
