@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,15 +6,19 @@ using UnityStandardAssets.CrossPlatformInput;
 
 public class Player : MonoBehaviour
 {
+  [SerializeField] float attackRange = 1f;
+  [SerializeField] Transform hurtBox;
   [SerializeField] float runSpeed = 5f;
   [SerializeField] float jumpSpeed = 10f;
   [SerializeField] float climbSpeed = 5f;
+  [SerializeField] Vector2 hitKick = new Vector2(15f, 10f);
   Rigidbody2D myRigidBody2D;
   Animator myAnimator;
   BoxCollider2D myBoxCollider2D;
   PolygonCollider2D myPolygonCollider2D;
   float startingGravityScale = 0.0f;
   int jumpCnt = 0;
+  bool stun = false;
 
   // Start is called before the first frame update
   void Start()
@@ -28,10 +33,48 @@ public class Player : MonoBehaviour
   // Update is called once per frame
   void Update()
   {
-    Run();
-    Jump();
-    Climb();
+    if (!stun)
+    {
+      Run();
+      Jump();
+      Climb();
+      Attack();
+
+
+      if (myBoxCollider2D.IsTouchingLayers(LayerMask.GetMask("enemy")))
+      {
+        PlayerHit();
+      }
+      ExitLevel();
+    }
   }
+
+  public void PlayerHit()
+  {
+    myRigidBody2D.velocity = hitKick * new Vector2(-transform.localScale.x, 1f);
+    myAnimator.SetTrigger("Hit");
+    stun = true;
+
+    FindObjectOfType<GameSession>().ProcessPlayerDeath();
+    StartCoroutine(StopStun());
+  }
+  IEnumerator StopStun()
+  {
+    yield return new WaitForSeconds(2f);
+    stun = false;
+  }
+  private void ExitLevel()
+  {
+    if (!myBoxCollider2D.IsTouchingLayers(LayerMask.GetMask("Interact")))
+    {
+      return;
+    }
+    if (CrossPlatformInputManager.GetButton("Vertical"))
+    {
+      FindObjectOfType<Door>().StartNextLevel();
+    }
+  }
+
   private void Run()
   {
     float controlThrow = CrossPlatformInputManager.GetAxis("Horizontal");
@@ -39,8 +82,6 @@ public class Player : MonoBehaviour
     myRigidBody2D.velocity = playerVelocity;
     FlipSprite();
     ChangeStateToRun();
-
-
   }
   private void ChangeStateToRun()
   {
@@ -110,5 +151,25 @@ public class Player : MonoBehaviour
     ChangeStateToClimb();
   }
 
+  private void Attack()
+  {
+    bool isAttack = CrossPlatformInputManager.GetButtonDown("Fire1");
+    if (isAttack)
+    {
+      myAnimator.SetTrigger("Attack");
+      Collider2D[] enemiesHit = Physics2D.OverlapCircleAll(hurtBox.position, attackRange, LayerMask.GetMask("enemy"));
+
+      foreach (Collider2D enemy in enemiesHit)
+      {
+        enemy.GetComponent<Enemy>().Dying();
+      }
+    }
+
+  }
+
+  private void OnDrawGizmosSelected()
+  {
+    Gizmos.DrawWireSphere(hurtBox.position, attackRange);
+  }
 }
 

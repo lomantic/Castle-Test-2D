@@ -15,10 +15,10 @@ TagManager:
   - Climb
   - player
   - World Confiner
-  - 
-  - 
-  - 
-  - 
+  - enemy
+  - bomb
+  - Interact
+  - pickup
   - 
   - 
   - 
@@ -47,12 +47,21 @@ TagManager:
   - name: Background
     uniqueID: 793624805
     locked: 0
-  - name: Foreground
-    uniqueID: 744192151
-    locked: 0
   - name: Climb
     uniqueID: 2447733883
     locked: 0
+  - name: Door
+    uniqueID: 1356063089
+    locked: 0
+  - name: PickUp
+    uniqueID: 3998598707
+    locked: 0
   - name: Player
     uniqueID: 1092532369
+    locked: 0
+  - name: bomb
+    uniqueID: 3492595635
+    locked: 0
+  - name: Foreground
+    uniqueID: 744192151
     locked: 0
