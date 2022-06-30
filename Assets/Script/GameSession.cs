@@ -10,6 +10,7 @@ public class GameSession : MonoBehaviour
 {
   [SerializeField] int playerLives = 4, score = 0;
   [SerializeField] TMP_Text scoreText, livesText;
+  [SerializeField] Image[] hearts;
   //[SerializeField] Text scoreText, livesText;
   private void Awake()
   {
@@ -37,7 +38,11 @@ public class GameSession : MonoBehaviour
   }
   public void AddHeart(int value)
   {
-    playerLives += value;
+    if (playerLives < 3)
+    {
+      playerLives += value;
+    }
+    UpdateHearts();
     livesText.text = playerLives.ToString();
   }
   public void ProcessPlayerDeath()
@@ -55,7 +60,23 @@ public class GameSession : MonoBehaviour
   private void TakeLife()
   {
     playerLives--;
+    UpdateHearts();
     livesText.text = playerLives.ToString();
+  }
+
+  private void UpdateHearts()
+  {
+    for (int i = 0; i < hearts.Length; i++)
+    {
+      if (i < playerLives)
+      {
+        hearts[i].enabled = true;
+      }
+      else
+      {
+        hearts[i].enabled = false;
+      }
+    }
   }
 
   private void ResetGame()
