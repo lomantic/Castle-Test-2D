@@ -8,6 +8,7 @@ public class Enemy : MonoBehaviour
   [SerializeField] float enemyRunSpeed = 5f;
   Rigidbody2D enemyRigidBody;
   Animator enemyAnimator;
+  private bool alive = true;
 
   // Start is called before the first frame update
   void Start()
@@ -19,7 +20,11 @@ public class Enemy : MonoBehaviour
   // Update is called once per frame
   void Update()
   {
-    EnemyMovement();
+    if (alive)
+    {
+      EnemyMovement();
+    }
+
   }
 
   public void Dying()
@@ -28,6 +33,7 @@ public class Enemy : MonoBehaviour
     GetComponent<CapsuleCollider2D>().enabled = false;
     GetComponent<BoxCollider2D>().enabled = false;
     enemyRigidBody.bodyType = RigidbodyType2D.Static;
+    alive = false;
     StartCoroutine(ClaenUpCorp());
   }
   IEnumerator ClaenUpCorp()

@@ -9,7 +9,7 @@ public class Player : MonoBehaviour
   [SerializeField] float attackRange = 1f;
   [SerializeField] Transform hurtBox;
   [SerializeField] float runSpeed = 5f;
-  [SerializeField] float jumpSpeed = 10f;
+  [SerializeField] float jumpSpeed = 50f;
   [SerializeField] float climbSpeed = 5f;
   [SerializeField] Vector2 hitKick = new Vector2(15f, 10f);
   [SerializeField] AudioClip attackSFX, runningSFX;
@@ -21,6 +21,16 @@ public class Player : MonoBehaviour
   float startingGravityScale = 0.0f;
   int jumpCnt = 0;
   bool stun = false;
+  TrailRenderer trailRenderer;
+
+
+  [Header("Dahsing")]
+  [SerializeField] private float dashingSpeed = 10f;
+  [SerializeField] private float dashingTime = 0.3f;
+  private Vector2 dashingDir;
+  private bool CS = false;
+  private bool isDashing = false;
+  private bool canDash = true;
 
   // Start is called before the first frame update
   void Start()
@@ -30,6 +40,7 @@ public class Player : MonoBehaviour
     myBoxCollider2D = GetComponent<BoxCollider2D>();
     myPolygonCollider2D = GetComponent<PolygonCollider2D>();
     myAudioSource = GetComponent<AudioSource>();
+    trailRenderer = GetComponent<TrailRenderer>();
     startingGravityScale = myRigidBody2D.gravityScale;
     myAnimator.SetTrigger("DoorOut");
   }
@@ -37,13 +48,15 @@ public class Player : MonoBehaviour
   // Update is called once per frame
   void Update()
   {
+
     if (!stun)
     {
       Run();
+      Dash();
       Jump();
       Climb();
       Attack();
-
+      CounterSpear();
 
       if (myBoxCollider2D.IsTouchingLayers(LayerMask.GetMask("enemy")))
       {
@@ -90,6 +103,58 @@ public class Player : MonoBehaviour
     GetComponent<SpriteRenderer>().enabled = false;
   }
 
+  private void CounterSpear()
+  {
+    bool csInput = CrossPlatformInputManager.GetButtonDown("CS");
+    if (csInput)
+    {
+      CS = !CS;
+      Physics2D.IgnoreLayerCollision(8, 10, CS);
+    }
+  }
+  private void Dash()
+  {
+    bool dashInput = CrossPlatformInputManager.GetButtonDown("Dash");
+
+    if (dashInput && canDash)
+    {
+      isDashing = true;
+      canDash = false;
+      trailRenderer.emitting = true;
+      dashingDir = new Vector2(CrossPlatformInputManager.GetAxis("Horizontal"), CrossPlatformInputManager.GetAxis("Vertical"));
+      if (dashingDir == Vector2.zero)
+      {
+        dashingDir = new Vector2(transform.localScale.x, 0);
+      }
+      StartCoroutine(StopDashing());
+    }
+
+
+    if (isDashing)
+    {
+      myRigidBody2D.drag = 10;
+      Physics2D.IgnoreLayerCollision(8, 10, true);
+      Physics2D.IgnoreLayerCollision(8, 11, true);
+      myAnimator.SetBool("Run", isDashing);
+      myRigidBody2D.velocity = dashingDir.normalized * dashingSpeed;
+      return;
+    }
+
+    if (onGround())
+    {
+      canDash = true;
+    }
+  }
+
+  private IEnumerator StopDashing()
+  {
+    yield return new WaitForSeconds(dashingTime);
+    myRigidBody2D.drag = 0;
+    Physics2D.IgnoreLayerCollision(8, 10, false);
+    Physics2D.IgnoreLayerCollision(8, 11, false);
+    trailRenderer.emitting = false;
+    isDashing = false;
+  }
   private void Run()
   {
     float controlThrow = CrossPlatformInputManager.GetAxis("Horizontal");
@@ -144,9 +209,10 @@ public class Player : MonoBehaviour
       return false;
     }
   }
+
   private bool onGround()
   {
-    if (myPolygonCollider2D.IsTouchingLayers(LayerMask.GetMask("Ground")))
+    if (myBoxCollider2D.IsTouchingLayers(LayerMask.GetMask("Ground")))
     {
       jumpCnt = 0;
       return true;

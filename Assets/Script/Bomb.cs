@@ -32,7 +32,7 @@ public class Bomb : MonoBehaviour
   void ExplodeBomb()
   {
     Collider2D playerCollider = Physics2D.OverlapCircle(transform.position, radius, LayerMask.GetMask("player"));
-    if (playerCollider)
+    if (playerCollider && !Physics2D.GetIgnoreLayerCollision(8, 11))
     {
       playerCollider.GetComponent<Rigidbody2D>().AddForce(explosionForce);
       playerCollider.GetComponent<Player>().PlayerHit();
