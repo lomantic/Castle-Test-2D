@@ -13,6 +13,8 @@ public class Player : MonoBehaviour
   [SerializeField] float climbSpeed = 5f;
   [SerializeField] Vector2 hitKick = new Vector2(15f, 10f);
   [SerializeField] AudioClip attackSFX, runningSFX;
+  [SerializeField] private Camera mainCamera;
+  [SerializeField] Vector3 charPos, dashVector;
   Rigidbody2D myRigidBody2D;
   Animator myAnimator;
   BoxCollider2D myBoxCollider2D;
@@ -22,7 +24,8 @@ public class Player : MonoBehaviour
   int jumpCnt = 0;
   bool stun = false;
   TrailRenderer trailRenderer;
-
+  private GameObject FB_obj = null;
+  private Vector3 fbPos;
 
   [Header("Dahsing")]
   [SerializeField] private float dashingSpeed = 10f;
@@ -31,6 +34,7 @@ public class Player : MonoBehaviour
   private bool CS = false;
   private bool isDashing = false;
   private bool canDash = true;
+  private bool FB_activated = false;
 
   // Start is called before the first frame update
   void Start()
@@ -41,6 +45,9 @@ public class Player : MonoBehaviour
     myPolygonCollider2D = GetComponent<PolygonCollider2D>();
     myAudioSource = GetComponent<AudioSource>();
     trailRenderer = GetComponent<TrailRenderer>();
+    mainCamera = GameObject.Find("Main Camera").GetComponent<Camera>();
+    FB_obj = GameObject.Find("Magic Box");
+
     startingGravityScale = myRigidBody2D.gravityScale;
     myAnimator.SetTrigger("DoorOut");
   }
@@ -48,9 +55,9 @@ public class Player : MonoBehaviour
   // Update is called once per frame
   void Update()
   {
-
     if (!stun)
     {
+      FlameBlink();
       Run();
       Dash();
       Jump();
@@ -118,10 +125,16 @@ public class Player : MonoBehaviour
 
     if (dashInput && canDash)
     {
+      Vector3 mousePos = mainCamera.ScreenToWorldPoint(CrossPlatformInputManager.mousePosition);
+      charPos = GameObject.Find("Player").transform.position;
+      mousePos.z = 0f;
+      charPos.z = 0f;
+      dashVector = (mousePos - charPos);
       isDashing = true;
       canDash = false;
       trailRenderer.emitting = true;
-      dashingDir = new Vector2(CrossPlatformInputManager.GetAxis("Horizontal"), CrossPlatformInputManager.GetAxis("Vertical"));
+      dashingDir = dashVector;
+      //dashingDir = new Vector2(CrossPlatformInputManager.GetAxis("Horizontal"), CrossPlatformInputManager.GetAxis("Vertical"));
       if (dashingDir == Vector2.zero)
       {
         dashingDir = new Vector2(transform.localScale.x, 0);
@@ -271,6 +284,32 @@ public class Player : MonoBehaviour
         enemy.GetComponent<Enemy>().Dying();
       }
     }
+
+  }
+
+  private void FlameBlink()
+  {
+    bool isFB = CrossPlatformInputManager.GetButtonDown("FB");
+
+    if (isFB)
+    {
+      Debug.Log("q 눌렀음 ");
+      Debug.Log("포탈 설치 여부 : " + FB_activated);
+      if (FB_activated)
+      {
+        GameObject.Find("Player").transform.position = fbPos;
+        Debug.Log("포탈로 이동 " + fbPos);
+        fbPos = new(0f, 0f, 0f);
+      }
+      else
+      {
+        fbPos = GameObject.Find("Player").transform.position;
+        Instantiate(FB_obj, fbPos, Quaternion.identity);
+        Debug.Log("매직 박스 : " + FB_obj);
+        Debug.Log("포탈 생성 위치 " + fbPos);
+      }
+      FB_activated = !FB_activated;
+    };
 
   }
 
