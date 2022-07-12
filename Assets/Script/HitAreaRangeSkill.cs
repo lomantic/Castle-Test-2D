@@ -10,11 +10,13 @@ public class HitAreaRangeSkill : MonoBehaviour
   SpriteRenderer mySpriteRenderer;
   private Enemy target = null;
   private Enemy newTarget = null;
-  private Enemy lockedTarget = null;
+  static public Enemy lockedTarget = null;
 
   private float centerToEnemyDistance = -1f;
   private float targetDistance = -1f;
   private Color skillAvailable = new Color(0.1342f, 0.866f, 0f, 0.169f);
+
+
   // Start is called before the first frame update
   void Start()
   {
@@ -62,17 +64,20 @@ public class HitAreaRangeSkill : MonoBehaviour
           target.targeted();
           lockedTarget = target;
         }
+        Player.castling_possible = true;
       }
       else if (enemiesHit.Length == 0 && lockedTarget != null)
       {
         lockedTarget.targetDisabled();
         lockedTarget = null;
+        Player.castling_possible = false;
       }
     }
     else if (lockedTarget != null)
     {
       lockedTarget.targetDisabled();
       lockedTarget = null;
+      Player.castling_possible = false;
     }
 
 

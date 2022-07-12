@@ -49,14 +49,16 @@ public class Player : MonoBehaviour
   private bool isDashing = false;
   private bool canDash = true;
   private bool FB_activated = false;
+  static public bool castling_possible = false;
+  public HitAreaRangeSkill targetOn;
 
   [Header("Blink")]
   [SerializeField] LineRenderer _lineRenderer;
 
-
   // Start is called before the first frame update
   void Start()
   {
+
     _lineRenderer = GetComponent<LineRenderer>();
     _lineRenderer.enabled = false;
     myRigidBody2D = GetComponent<Rigidbody2D>();
@@ -116,7 +118,6 @@ public class Player : MonoBehaviour
     if (CrossPlatformInputManager.GetButton("Vertical"))
     {
       myAnimator.SetTrigger("DoorIn");
-
     }
   }
 
@@ -327,12 +328,18 @@ public class Player : MonoBehaviour
 
     if (isRS)
     {
-      if (range_skill_activated)
+      Debug.Log("상태는 " + castling_possible);
+      if (range_skill_activated && castling_possible)
       {
         Addressables.Release(skillHandle);
         Destroy(newRangeSkill);
         Addressables.Release(dropSkillHandle);
         Destroy(newDropSkill);
+
+        Vector3 tmpPos = HitAreaRangeSkill.lockedTarget.transform.position;
+        HitAreaRangeSkill.lockedTarget.transform.position = GameObject.Find("Player").transform.position;
+        GameObject.Find("Player").transform.position = tmpPos;
+        HitAreaRangeSkill.lockedTarget.GetComponent<SpriteRenderer>().color = new Color(1f, 1f, 1f, 1f);
       }
       else
       {
