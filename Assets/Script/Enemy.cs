@@ -8,6 +8,7 @@ public class Enemy : MonoBehaviour
   [SerializeField] float enemyRunSpeed = 5f;
   Rigidbody2D enemyRigidBody;
   Animator enemyAnimator;
+  SpriteRenderer enemySpriteRenderer;
   private bool alive = true;
 
   // Start is called before the first frame update
@@ -15,6 +16,7 @@ public class Enemy : MonoBehaviour
   {
     enemyRigidBody = GetComponent<Rigidbody2D>();
     enemyAnimator = GetComponent<Animator>();
+    enemySpriteRenderer = GetComponent<SpriteRenderer>();
   }
 
   // Update is called once per frame
@@ -31,7 +33,7 @@ public class Enemy : MonoBehaviour
   {
     enemyAnimator.SetTrigger("Die");
     GetComponent<CapsuleCollider2D>().enabled = false;
-    GetComponent<BoxCollider2D>().enabled = false;
+    transform.GetChild(0).gameObject.GetComponent<BoxCollider2D>().enabled = false;
     enemyRigidBody.bodyType = RigidbodyType2D.Static;
     alive = false;
     StartCoroutine(ClaenUpCorp());
@@ -68,7 +70,15 @@ public class Enemy : MonoBehaviour
     return transform.localScale.x > 0;
   }
 
+  public void targeted()
+  {
+    enemySpriteRenderer.color = new Color(0.952f, 0.409f, 1f, 1f);
+  }
 
+  public void targetDisabled()
+  {
+    enemySpriteRenderer.color = new Color(1f, 1f, 1f, 1f);
+  }
 
 }
 

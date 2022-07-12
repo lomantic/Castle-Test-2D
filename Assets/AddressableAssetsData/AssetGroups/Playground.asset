@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Playground
+  m_EditorClassIdentifier: 
+  m_GroupName: Playground
+  m_Data:
+    m_SerializedData: []
+  m_GUID: 93ece98603203774c897d030fe4214c1
+  m_SerializeEntries:
+  - m_GUID: 674085d3d5f059049bf2746973435c8c
+    m_Address: Magic Box
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  - m_GUID: 15a52feef2c829e49b80ffaf3239222d
+    m_Address: Skill Range
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  - m_GUID: 5903fbceeca7a5946af13dcebff46b31
+    m_Address: Skill Drop Point
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: c14ec242b5291224e80c82599cacf116, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 1f7c158ca33169441a8edbf83df500b8, type: 2}
+    - {fileID: 11400000, guid: 2faf6db5da9d321489ad720fccc9e95d, type: 2}

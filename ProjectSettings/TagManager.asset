@@ -20,9 +20,9 @@ TagManager:
   - Interact
   - pickup
   - charSkillATK0
-  - 
-  - 
-  - 
+  - charSkillATK
+  - mark
+  - enemyFloorDetector
   - 
   - 
   - 
@@ -56,11 +56,17 @@ TagManager:
   - name: PickUp
     uniqueID: 3998598707
     locked: 0
+  - name: mark
+    uniqueID: 3200195787
+    locked: 0
   - name: Player
     uniqueID: 1092532369
     locked: 0
   - name: PlayerSkillATK0
     uniqueID: 1168460645
+    locked: 0
+  - name: PlayerSkillATK
+    uniqueID: 3627872115
     locked: 0
   - name: bomb
     uniqueID: 3492595635

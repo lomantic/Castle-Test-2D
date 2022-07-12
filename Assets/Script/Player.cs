@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityStandardAssets.CrossPlatformInput;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 public class Player : MonoBehaviour
 {
@@ -24,8 +26,20 @@ public class Player : MonoBehaviour
   int jumpCnt = 0;
   bool stun = false;
   TrailRenderer trailRenderer;
-  private GameObject FB_obj = null;
+  [SerializeField] GameObject FB_obj = null;
+  [SerializeField] GameObject newBlink = null;
+
+  [SerializeField] GameObject range_obj = null;
+  [SerializeField] GameObject drop_skill_obj = null;
+
+  private GameObject newRangeSkill = null;
+  private GameObject newDropSkill = null;
+  private bool range_skill_activated = false;
+  AsyncOperationHandle Handle;
+  AsyncOperationHandle skillHandle;
+  AsyncOperationHandle dropSkillHandle;
   private Vector3 fbPos;
+  private Vector3 dropPos;
 
   [Header("Dahsing")]
   [SerializeField] private float dashingSpeed = 10f;
@@ -36,9 +50,15 @@ public class Player : MonoBehaviour
   private bool canDash = true;
   private bool FB_activated = false;
 
+  [Header("Blink")]
+  [SerializeField] LineRenderer _lineRenderer;
+
+
   // Start is called before the first frame update
   void Start()
   {
+    _lineRenderer = GetComponent<LineRenderer>();
+    _lineRenderer.enabled = false;
     myRigidBody2D = GetComponent<Rigidbody2D>();
     myAnimator = GetComponent<Animator>();
     myBoxCollider2D = GetComponent<BoxCollider2D>();
@@ -46,7 +66,6 @@ public class Player : MonoBehaviour
     myAudioSource = GetComponent<AudioSource>();
     trailRenderer = GetComponent<TrailRenderer>();
     mainCamera = GameObject.Find("Main Camera").GetComponent<Camera>();
-    FB_obj = GameObject.Find("Magic Box");
 
     startingGravityScale = myRigidBody2D.gravityScale;
     myAnimator.SetTrigger("DoorOut");
@@ -57,6 +76,7 @@ public class Player : MonoBehaviour
   {
     if (!stun)
     {
+      RangeSkill();
       FlameBlink();
       Run();
       Dash();
@@ -286,27 +306,118 @@ public class Player : MonoBehaviour
     }
 
   }
+  private void RangeSkill()
+  {
+    bool isRS = CrossPlatformInputManager.GetButtonDown("Switch Pos");
+    if (range_skill_activated && newRangeSkill != null)
+    {
+      newRangeSkill.transform.position = GameObject.Find("Player").transform.position;
+      dropPos = mainCamera.ScreenToWorldPoint(CrossPlatformInputManager.mousePosition);
+      dropPos = new Vector3(dropPos.x, dropPos.y, 0);
+      newDropSkill.transform.position = dropPos;
+      if (skillRangeDetecter(newRangeSkill.transform.localScale.x / 2, (GameObject.Find("Player").transform.position - dropPos).magnitude))
+      {
+        newDropSkill.GetComponent<SpriteRenderer>().color = new Color(0.1342f, 0.866f, 0f, 0.169f);
+      }
+      else
+      {
+        newDropSkill.GetComponent<SpriteRenderer>().color = new Color(1f, 0.023f, 0.023f, 0.169f);
+      }
+    }
+
+    if (isRS)
+    {
+      if (range_skill_activated)
+      {
+        Addressables.Release(skillHandle);
+        Destroy(newRangeSkill);
+        Addressables.Release(dropSkillHandle);
+        Destroy(newDropSkill);
+      }
+      else
+      {
+        Addressables.LoadAssetAsync<GameObject>("Skill Range").Completed +=
+        (AsyncOperationHandle<GameObject> Obj) =>
+        {
+          skillHandle = Obj;
+          range_obj = Obj.Result;
+          newRangeSkill = Instantiate(range_obj, GameObject.Find("Player").transform.position, Quaternion.identity);
+        };
+        Addressables.LoadAssetAsync<GameObject>("Skill Drop Point").Completed +=
+        (AsyncOperationHandle<GameObject> Obj) =>
+        {
+          dropSkillHandle = Obj;
+          drop_skill_obj = Obj.Result;
+          dropPos = mainCamera.ScreenToWorldPoint(CrossPlatformInputManager.mousePosition);
+          dropPos = new Vector3(dropPos.x, dropPos.y, 0);
+          newDropSkill = Instantiate(drop_skill_obj, dropPos, Quaternion.identity);
+
+
+        };
+      }
+      range_skill_activated = !range_skill_activated;
+    }
+  }
+
+  private bool skillRangeDetecter(float skillRange, float skillDropRange)
+  {
+    if (skillRange > skillDropRange)
+    {
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  }
 
   private void FlameBlink()
   {
     bool isFB = CrossPlatformInputManager.GetButtonDown("FB");
 
-    if (isFB)
+    if (FB_activated)
     {
-      Debug.Log("q 눌렀음 ");
-      Debug.Log("포탈 설치 여부 : " + FB_activated);
-      if (FB_activated)
+      _lineRenderer.SetPosition(1, GameObject.Find("Player").transform.position);
+      if ((_lineRenderer.GetPosition(0) - _lineRenderer.GetPosition(1)).magnitude > 10f)
       {
-        GameObject.Find("Player").transform.position = fbPos;
-        Debug.Log("포탈로 이동 " + fbPos);
-        fbPos = new(0f, 0f, 0f);
+        _lineRenderer.enabled = false;
       }
       else
       {
-        fbPos = GameObject.Find("Player").transform.position;
-        Instantiate(FB_obj, fbPos, Quaternion.identity);
-        Debug.Log("매직 박스 : " + FB_obj);
-        Debug.Log("포탈 생성 위치 " + fbPos);
+        _lineRenderer.enabled = true;
+      }
+    }
+    if (isFB)
+    {
+      //Debug.Log("q 눌렀음 ");
+      //Debug.Log("포탈 설치 여부 : " + FB_activated);
+      if (FB_activated)
+      {
+        GameObject.Find("Player").transform.position = fbPos;
+        //Debug.Log("포탈로 이동 " + fbPos);
+        _lineRenderer.enabled = false;
+        fbPos = new(0f, 0f, 0f);
+        Addressables.Release(Handle);
+        Destroy(newBlink);
+
+      }
+      else
+      {
+        Addressables.LoadAssetAsync<GameObject>("Magic Box").Completed +=
+        (AsyncOperationHandle<GameObject> Obj) =>
+        {
+          Handle = Obj;
+          FB_obj = Obj.Result;
+          fbPos = GameObject.Find("Player").transform.position;
+          newBlink = Instantiate(FB_obj, fbPos, Quaternion.identity);
+          _lineRenderer.positionCount = 2;
+          _lineRenderer.SetPosition(0, fbPos);
+          _lineRenderer.SetPosition(1, fbPos);
+          _lineRenderer.enabled = true;
+
+          //Debug.Log("매직 박스 : " + FB_obj);
+          //Debug.Log("포탈 생성 위치 " + fbPos);
+        };
       }
       FB_activated = !FB_activated;
     };
