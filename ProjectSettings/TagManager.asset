@@ -23,9 +23,9 @@ TagManager:
   - charSkillATK
   - mark
   - enemyFloorDetector
-  - 
-  - 
-  - 
+  - MiniMap
+  - BothMap
+  - WorldMap
   - 
   - 
   - 

@@ -5,6 +5,8 @@ using UnityEngine;
 using UnityStandardAssets.CrossPlatformInput;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.InputSystem;
+using Cinemachine;
 
 public class Player : MonoBehaviour
 {
@@ -47,14 +49,79 @@ public class Player : MonoBehaviour
   private Vector2 dashingDir;
   private bool CS = false;
   private bool isDashing = false;
-  private bool canDash = true;
+  //private bool canDash = true;
   private bool FB_activated = false;
   static public bool castling_possible = false;
   public HitAreaRangeSkill targetOn;
+  private bool mapOn = false;
+  [SerializeField] CinemachineConfiner2D _cache;
 
   [Header("Blink")]
   [SerializeField] LineRenderer _lineRenderer;
 
+  [Header("WorldTest")]
+  [SerializeField] BoxCollider2D cameraCollider;
+  [SerializeField] PolygonCollider2D confinderCollider;
+  [SerializeField] CanvasGroup worldMap;
+
+  [Header("KeyTest")]
+  private PlayerInput playerInput;
+  private InputAction jumpAction;
+  private InputAction DashAction;
+  private InputAction movementAction;
+  private InputAction ClimbAction;
+  private InputAction AttackAction;
+  private InputAction ImmortalAction;
+  private InputAction WorldMapAction;
+  private InputAction BlinkAction;
+  private InputAction NextLevelAction;
+  private InputAction RangeSkillAction;
+
+  private void Awake()
+  {
+    playerInput = GetComponent<PlayerInput>();
+    jumpAction = playerInput.actions["Jump"];
+    DashAction = playerInput.actions["Dash"];
+    ClimbAction = playerInput.actions["Climb"];
+    movementAction = playerInput.actions["Movement"];
+    AttackAction = playerInput.actions["Attack"];
+    ImmortalAction = playerInput.actions["Immortal"];
+    WorldMapAction = playerInput.actions["Map"];
+    BlinkAction = playerInput.actions["Blink"];
+    RangeSkillAction = playerInput.actions["Castling"];
+    NextLevelAction = playerInput.actions["NextLevel"];
+  }
+  private void OnEnable()
+  {
+    movementAction.performed += Run;
+    movementAction.canceled += Run;
+    ClimbAction.performed += Climb;
+    ClimbAction.canceled += Climb;
+    DashAction.performed += Dash;
+    movementAction.performed += Run;
+    AttackAction.performed += Attack;
+    jumpAction.performed += Jump;
+    ImmortalAction.performed += CounterSpear;
+    WorldMapAction.performed += CameraCheck;
+    BlinkAction.performed += FlameBlink;
+    RangeSkillAction.performed += RangeSkill;
+    NextLevelAction.performed += ExitLevel;
+  }
+  private void OnDisable()
+  {
+    movementAction.performed -= Run;
+    movementAction.canceled -= Run;
+    ClimbAction.performed -= Climb;
+    ClimbAction.canceled -= Climb;
+    DashAction.performed -= Dash;
+    AttackAction.performed -= Attack;
+    jumpAction.performed -= Jump;
+    ImmortalAction.performed -= CounterSpear;
+    WorldMapAction.performed -= CameraCheck;
+    BlinkAction.performed -= FlameBlink;
+    RangeSkillAction.performed -= RangeSkill;
+    NextLevelAction.performed -= ExitLevel;
+  }
   // Start is called before the first frame update
   void Start()
   {
@@ -78,23 +145,44 @@ public class Player : MonoBehaviour
   {
     if (!stun)
     {
-      RangeSkill();
-      FlameBlink();
-      Run();
-      Dash();
-      Jump();
-      Climb();
-      Attack();
-      CounterSpear();
+      //RangeSkill();
+      //FlameBlink();
+      //Run();
+      //Dash();
+      //Jump();
+      //Climb();
+      //Attack();
+      //CameraCheck();
 
       if (myBoxCollider2D.IsTouchingLayers(LayerMask.GetMask("enemy")))
       {
         PlayerHit();
       }
-      ExitLevel();
+      //ExitLevel();
     }
   }
+  public void CameraCheck(InputAction.CallbackContext _)
+  {
 
+    mapOn = !mapOn;
+    if (mapOn)
+    {
+      worldMap.alpha = 1;
+    }
+    else
+    {
+      worldMap.alpha = 0;
+    }
+
+    if (mapOn)
+    {
+      if (!Physics2D.IsTouching(cameraCollider, confinderCollider))
+      {
+        Debug.Log("camera touches border of confinder");
+      }
+    }
+
+  }
   public void PlayerHit()
   {
     myRigidBody2D.velocity = hitKick * new Vector2(-transform.localScale.x, 1f);
@@ -109,13 +197,13 @@ public class Player : MonoBehaviour
     yield return new WaitForSeconds(2f);
     stun = false;
   }
-  private void ExitLevel()
+  private void ExitLevel(InputAction.CallbackContext ctx)
   {
     if (!myBoxCollider2D.IsTouchingLayers(LayerMask.GetMask("Interact")))
     {
       return;
     }
-    if (CrossPlatformInputManager.GetButton("Vertical"))
+    if (ctx.performed)
     {
       myAnimator.SetTrigger("DoorIn");
     }
@@ -131,68 +219,59 @@ public class Player : MonoBehaviour
     GetComponent<SpriteRenderer>().enabled = false;
   }
 
-  private void CounterSpear()
+  private void CounterSpear(InputAction.CallbackContext _)
   {
-    bool csInput = CrossPlatformInputManager.GetButtonDown("CS");
-    if (csInput)
-    {
-      CS = !CS;
-      Physics2D.IgnoreLayerCollision(8, 10, CS);
-    }
+    //bool csInput = CrossPlatformInputManager.GetButtonDown("CS");
+    CS = !CS;
+    Physics2D.IgnoreLayerCollision(8, 10, CS);
   }
-  private void Dash()
+  private void Dash(InputAction.CallbackContext _)
   {
-    bool dashInput = CrossPlatformInputManager.GetButtonDown("Dash");
+    //bool dashInput = CrossPlatformInputManager.GetButtonDown("Dash");
 
-    if (dashInput && canDash)
+
+    //Vector3 mousePos = mainCamera.ScreenToWorldPoint(CrossPlatformInputManager.mousePosition);
+    Vector3 mousePos = mainCamera.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+    charPos = GameObject.Find("Player").transform.position;
+    //Debug.Log("마우스 위치: " + mousePos + "  사람위치 : " + charPos);
+    mousePos.z = 0f;
+    charPos.z = 0f;
+    dashVector = (mousePos - charPos);
+    isDashing = true;
+
+    trailRenderer.emitting = true;
+    dashingDir = dashVector;
+    //dashingDir = new Vector2(CrossPlatformInputManager.GetAxis("Horizontal"), CrossPlatformInputManager.GetAxis("Vertical"));
+    if (dashingDir == Vector2.zero)
     {
-      Vector3 mousePos = mainCamera.ScreenToWorldPoint(CrossPlatformInputManager.mousePosition);
-      charPos = GameObject.Find("Player").transform.position;
-      mousePos.z = 0f;
-      charPos.z = 0f;
-      dashVector = (mousePos - charPos);
-      isDashing = true;
-      canDash = false;
-      trailRenderer.emitting = true;
-      dashingDir = dashVector;
-      //dashingDir = new Vector2(CrossPlatformInputManager.GetAxis("Horizontal"), CrossPlatformInputManager.GetAxis("Vertical"));
-      if (dashingDir == Vector2.zero)
-      {
-        dashingDir = new Vector2(transform.localScale.x, 0);
-      }
-      StartCoroutine(StopDashing());
+      dashingDir = new Vector2(transform.localScale.x, 0);
     }
+    myRigidBody2D.drag = 10;
+    Physics2D.IgnoreLayerCollision(8, 10, true);
+    Physics2D.IgnoreLayerCollision(8, 11, true);
+    myAnimator.SetBool("Run", isDashing);
+    myRigidBody2D.velocity = dashingDir.normalized * dashingSpeed;
+    StartCoroutine(StopDashing());
 
 
-    if (isDashing)
-    {
-      myRigidBody2D.drag = 10;
-      Physics2D.IgnoreLayerCollision(8, 10, true);
-      Physics2D.IgnoreLayerCollision(8, 11, true);
-      myAnimator.SetBool("Run", isDashing);
-      myRigidBody2D.velocity = dashingDir.normalized * dashingSpeed;
-      return;
-    }
-
-    if (onGround())
-    {
-      canDash = true;
-    }
   }
 
   private IEnumerator StopDashing()
   {
     yield return new WaitForSeconds(dashingTime);
-    myRigidBody2D.drag = 0;
     Physics2D.IgnoreLayerCollision(8, 10, false);
     Physics2D.IgnoreLayerCollision(8, 11, false);
     trailRenderer.emitting = false;
     isDashing = false;
+    myRigidBody2D.velocity = Vector2.zero;
+    myRigidBody2D.drag = 0;
+    myAnimator.SetBool("Run", isDashing);
   }
-  private void Run()
+  private void Run(InputAction.CallbackContext ctx)
   {
-    float controlThrow = CrossPlatformInputManager.GetAxis("Horizontal");
-    Vector2 playerVelocity = new Vector2(controlThrow * runSpeed, myRigidBody2D.velocity.y);
+    Vector2 inputHorizontalCoordinate = ctx.ReadValue<Vector2>();
+    //float controlThrow = CrossPlatformInputManager.GetAxis("Horizontal");
+    Vector2 playerVelocity = new Vector2(inputHorizontalCoordinate.x * runSpeed, myRigidBody2D.velocity.y);
     myRigidBody2D.velocity = playerVelocity;
     FlipSprite();
     ChangeStateToRun();
@@ -256,31 +335,30 @@ public class Player : MonoBehaviour
       return false;
     }
   }
-  private void Jump()
+  private void Jump(InputAction.CallbackContext _)
   {
-    bool isJumping = CrossPlatformInputManager.GetButtonDown("Jump");
-
-    if (isJumping)
+    //bool isJumping = CrossPlatformInputManager.GetButtonDown("Jump");
+    //Debug.Log("점프 누름 ");
+    if (!onGround() && jumpCnt == 2)
     {
-      if (!onGround() && jumpCnt == 2)
-      {
-        return;
-      }
-      Vector2 jumpVelocity = new Vector2(myRigidBody2D.velocity.x, jumpSpeed);
-      myRigidBody2D.velocity = jumpVelocity;
-      jumpCnt++;
-
+      return;
     }
+    Vector2 jumpVelocity = new Vector2(myRigidBody2D.velocity.x, jumpSpeed);
+    myRigidBody2D.velocity = jumpVelocity;
+    jumpCnt++;
+
+
 
 
   }
 
-  private void Climb()
+  private void Climb(InputAction.CallbackContext ctx)
   {
+    Vector2 inputVerticalCoordinate = ctx.ReadValue<Vector2>();
     if (myBoxCollider2D.IsTouchingLayers(LayerMask.GetMask("Climb")))
     {
-      float controlThrow = CrossPlatformInputManager.GetAxis("Vertical");
-      Vector2 climbVelocity = new Vector2(myRigidBody2D.velocity.x, controlThrow * climbSpeed);
+      //float controlThrow = CrossPlatformInputManager.GetAxis("Vertical");
+      Vector2 climbVelocity = new Vector2(myRigidBody2D.velocity.x, inputVerticalCoordinate.y * climbSpeed);
       myRigidBody2D.velocity = climbVelocity;
       myRigidBody2D.gravityScale = 0f;
     }
@@ -291,29 +369,28 @@ public class Player : MonoBehaviour
     ChangeStateToClimb();
   }
 
-  private void Attack()
+  private void Attack(InputAction.CallbackContext ctx)
   {
-    bool isAttack = CrossPlatformInputManager.GetButtonDown("Fire1");
-    if (isAttack)
-    {
-      myAnimator.SetTrigger("Attack");
-      myAudioSource.PlayOneShot(attackSFX);
-      Collider2D[] enemiesHit = Physics2D.OverlapCircleAll(hurtBox.position, attackRange, LayerMask.GetMask("enemy"));
 
-      foreach (Collider2D enemy in enemiesHit)
-      {
-        enemy.GetComponent<Enemy>().Dying();
-      }
+
+    myAnimator.SetTrigger("Attack");
+    myAudioSource.PlayOneShot(attackSFX);
+    Collider2D[] enemiesHit = Physics2D.OverlapCircleAll(hurtBox.position, attackRange, LayerMask.GetMask("enemy"));
+
+    foreach (Collider2D enemy in enemiesHit)
+    {
+      enemy.GetComponent<Enemy>().Dying();
     }
 
+
   }
-  private void RangeSkill()
+  private void RangeSkill(InputAction.CallbackContext ctx)
   {
-    bool isRS = CrossPlatformInputManager.GetButtonDown("Switch Pos");
+
     if (range_skill_activated && newRangeSkill != null)
     {
       newRangeSkill.transform.position = GameObject.Find("Player").transform.position;
-      dropPos = mainCamera.ScreenToWorldPoint(CrossPlatformInputManager.mousePosition);
+      dropPos = mainCamera.ScreenToWorldPoint(Mouse.current.position.ReadValue());
       dropPos = new Vector3(dropPos.x, dropPos.y, 0);
       newDropSkill.transform.position = dropPos;
       if (skillRangeDetecter(newRangeSkill.transform.localScale.x / 2, (GameObject.Find("Player").transform.position - dropPos).magnitude))
@@ -326,44 +403,44 @@ public class Player : MonoBehaviour
       }
     }
 
-    if (isRS)
-    {
-      Debug.Log("상태는 " + castling_possible);
-      if (range_skill_activated && castling_possible)
-      {
-        Addressables.Release(skillHandle);
-        Destroy(newRangeSkill);
-        Addressables.Release(dropSkillHandle);
-        Destroy(newDropSkill);
 
+    if (range_skill_activated)
+    {
+      Addressables.Release(skillHandle);
+      Destroy(newRangeSkill);
+      Addressables.Release(dropSkillHandle);
+      Destroy(newDropSkill);
+      if (castling_possible)
+      {
         Vector3 tmpPos = HitAreaRangeSkill.lockedTarget.transform.position;
         HitAreaRangeSkill.lockedTarget.transform.position = GameObject.Find("Player").transform.position;
         GameObject.Find("Player").transform.position = tmpPos;
         HitAreaRangeSkill.lockedTarget.GetComponent<SpriteRenderer>().color = new Color(1f, 1f, 1f, 1f);
       }
-      else
-      {
-        Addressables.LoadAssetAsync<GameObject>("Skill Range").Completed +=
-        (AsyncOperationHandle<GameObject> Obj) =>
-        {
-          skillHandle = Obj;
-          range_obj = Obj.Result;
-          newRangeSkill = Instantiate(range_obj, GameObject.Find("Player").transform.position, Quaternion.identity);
-        };
-        Addressables.LoadAssetAsync<GameObject>("Skill Drop Point").Completed +=
-        (AsyncOperationHandle<GameObject> Obj) =>
-        {
-          dropSkillHandle = Obj;
-          drop_skill_obj = Obj.Result;
-          dropPos = mainCamera.ScreenToWorldPoint(CrossPlatformInputManager.mousePosition);
-          dropPos = new Vector3(dropPos.x, dropPos.y, 0);
-          newDropSkill = Instantiate(drop_skill_obj, dropPos, Quaternion.identity);
-
-
-        };
-      }
-      range_skill_activated = !range_skill_activated;
     }
+    else
+    {
+      Addressables.LoadAssetAsync<GameObject>("Skill Range").Completed +=
+      (AsyncOperationHandle<GameObject> Obj) =>
+      {
+        skillHandle = Obj;
+        range_obj = Obj.Result;
+        newRangeSkill = Instantiate(range_obj, GameObject.Find("Player").transform.position, Quaternion.identity);
+      };
+      Addressables.LoadAssetAsync<GameObject>("Skill Drop Point").Completed +=
+      (AsyncOperationHandle<GameObject> Obj) =>
+      {
+        dropSkillHandle = Obj;
+        drop_skill_obj = Obj.Result;
+        dropPos = mainCamera.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+        dropPos = new Vector3(dropPos.x, dropPos.y, 0);
+        newDropSkill = Instantiate(drop_skill_obj, dropPos, Quaternion.identity);
+
+
+      };
+    }
+    range_skill_activated = !range_skill_activated;
+
   }
 
   private bool skillRangeDetecter(float skillRange, float skillDropRange)
@@ -378,9 +455,9 @@ public class Player : MonoBehaviour
     }
   }
 
-  private void FlameBlink()
+  private void FlameBlink(InputAction.CallbackContext _)
   {
-    bool isFB = CrossPlatformInputManager.GetButtonDown("FB");
+    //bool isFB = CrossPlatformInputManager.GetButtonDown("FB");
 
     if (FB_activated)
     {
@@ -394,40 +471,38 @@ public class Player : MonoBehaviour
         _lineRenderer.enabled = true;
       }
     }
-    if (isFB)
+
+    //Debug.Log("q 눌렀음 ");
+    //Debug.Log("포탈 설치 여부 : " + FB_activated);
+    if (FB_activated)
     {
-      //Debug.Log("q 눌렀음 ");
-      //Debug.Log("포탈 설치 여부 : " + FB_activated);
-      if (FB_activated)
-      {
-        GameObject.Find("Player").transform.position = fbPos;
-        //Debug.Log("포탈로 이동 " + fbPos);
-        _lineRenderer.enabled = false;
-        fbPos = new(0f, 0f, 0f);
-        Addressables.Release(Handle);
-        Destroy(newBlink);
+      GameObject.Find("Player").transform.position = fbPos;
+      //Debug.Log("포탈로 이동 " + fbPos);
+      _lineRenderer.enabled = false;
+      fbPos = new(0f, 0f, 0f);
+      Addressables.Release(Handle);
+      Destroy(newBlink);
 
-      }
-      else
+    }
+    else
+    {
+      Addressables.LoadAssetAsync<GameObject>("Magic Box").Completed +=
+      (AsyncOperationHandle<GameObject> Obj) =>
       {
-        Addressables.LoadAssetAsync<GameObject>("Magic Box").Completed +=
-        (AsyncOperationHandle<GameObject> Obj) =>
-        {
-          Handle = Obj;
-          FB_obj = Obj.Result;
-          fbPos = GameObject.Find("Player").transform.position;
-          newBlink = Instantiate(FB_obj, fbPos, Quaternion.identity);
-          _lineRenderer.positionCount = 2;
-          _lineRenderer.SetPosition(0, fbPos);
-          _lineRenderer.SetPosition(1, fbPos);
-          _lineRenderer.enabled = true;
+        Handle = Obj;
+        FB_obj = Obj.Result;
+        fbPos = GameObject.Find("Player").transform.position;
+        newBlink = Instantiate(FB_obj, fbPos, Quaternion.identity);
+        _lineRenderer.positionCount = 2;
+        _lineRenderer.SetPosition(0, fbPos);
+        _lineRenderer.SetPosition(1, fbPos);
+        _lineRenderer.enabled = true;
 
-          //Debug.Log("매직 박스 : " + FB_obj);
-          //Debug.Log("포탈 생성 위치 " + fbPos);
-        };
-      }
-      FB_activated = !FB_activated;
-    };
+        //Debug.Log("매직 박스 : " + FB_obj);
+        //Debug.Log("포탈 생성 위치 " + fbPos);
+      };
+    }
+    FB_activated = !FB_activated;
 
   }
 
