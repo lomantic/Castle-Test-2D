@@ -8,6 +8,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.InputSystem;
 using Cinemachine;
 
+
 public class Player : MonoBehaviour
 {
   [SerializeField] float attackRange = 1f;
@@ -77,6 +78,8 @@ public class Player : MonoBehaviour
   private InputAction NextLevelAction;
   private InputAction RangeSkillAction;
 
+
+
   private void Awake()
   {
     playerInput = GetComponent<PlayerInput>();
@@ -90,6 +93,7 @@ public class Player : MonoBehaviour
     BlinkAction = playerInput.actions["Blink"];
     RangeSkillAction = playerInput.actions["Castling"];
     NextLevelAction = playerInput.actions["NextLevel"];
+
   }
   private void OnEnable()
   {
@@ -293,6 +297,7 @@ public class Player : MonoBehaviour
   {
     bool runHorizontal = isWalking();
     myAnimator.SetBool("Run", runHorizontal);
+
 
   }
   private void ChangeStateToClimb()
