@@ -29,6 +29,10 @@ MonoBehaviour:
     m_Address: Skill Drop Point
     m_ReadOnly: 0
     m_SerializedLabels: []
+  - m_GUID: d88ce1eac61f6c0458855cce4565968c
+    m_Address: Map Marker
+    m_ReadOnly: 0
+    m_SerializedLabels: []
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: c14ec242b5291224e80c82599cacf116, type: 2}
   m_SchemaSet:

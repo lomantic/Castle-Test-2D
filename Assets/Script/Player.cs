@@ -18,13 +18,17 @@ public class Player : MonoBehaviour
   [SerializeField] float climbSpeed = 5f;
   [SerializeField] Vector2 hitKick = new Vector2(15f, 10f);
   [SerializeField] AudioClip attackSFX, runningSFX;
-  [SerializeField] private Camera mainCamera;
+  [SerializeField] Camera mainCamera;
+  [SerializeField] Camera UiCamera;
+  [SerializeField] Camera WorldCamera;
   [SerializeField] Vector3 charPos, dashVector;
   Rigidbody2D myRigidBody2D;
   Animator myAnimator;
   BoxCollider2D myBoxCollider2D;
   PolygonCollider2D myPolygonCollider2D;
   AudioSource myAudioSource;
+
+  Transform myTransform;
   float startingGravityScale = 0.0f;
   int jumpCnt = 0;
   bool stun = false;
@@ -35,14 +39,22 @@ public class Player : MonoBehaviour
   [SerializeField] GameObject range_obj = null;
   [SerializeField] GameObject drop_skill_obj = null;
 
+  private WaitForFixedUpdate waitForFixedUpdate = new WaitForFixedUpdate();
   private GameObject newRangeSkill = null;
   private GameObject newDropSkill = null;
+  private GameObject newMapPin = null;
   private bool range_skill_activated = false;
   AsyncOperationHandle Handle;
   AsyncOperationHandle skillHandle;
   AsyncOperationHandle dropSkillHandle;
+  AsyncOperationHandle MapPinHandle;
   private Vector3 fbPos;
   private Vector3 dropPos;
+
+  private Vector3 newPinPos;
+  private Vector2 newPinPosTracker;
+  private Vector2 mouseTracker;
+  RaycastHit2D hit;
 
   [Header("Dahsing")]
   [SerializeField] private float dashingSpeed = 10f;
@@ -64,6 +76,10 @@ public class Player : MonoBehaviour
   [SerializeField] BoxCollider2D cameraCollider;
   [SerializeField] PolygonCollider2D confinderCollider;
   [SerializeField] CanvasGroup worldMap;
+  [SerializeField] CinemachineVirtualCamera WorldVcam;
+
+  [SerializeField] RectTransform worldMapImage;
+  [SerializeField] Transform WorldCamTracker;
 
   [Header("KeyTest")]
   private PlayerInput playerInput;
@@ -77,6 +93,9 @@ public class Player : MonoBehaviour
   private InputAction BlinkAction;
   private InputAction NextLevelAction;
   private InputAction RangeSkillAction;
+  private InputAction PinCreateAction;
+  private InputAction ZoomMapAction;
+  private InputAction PanMapAction;
 
 
 
@@ -93,7 +112,9 @@ public class Player : MonoBehaviour
     BlinkAction = playerInput.actions["Blink"];
     RangeSkillAction = playerInput.actions["Castling"];
     NextLevelAction = playerInput.actions["NextLevel"];
-
+    PinCreateAction = playerInput.actions["Pin create"];
+    ZoomMapAction = playerInput.actions["Zoom Map"];
+    PanMapAction = playerInput.actions["Pan Map"];
   }
   private void OnEnable()
   {
@@ -110,7 +131,15 @@ public class Player : MonoBehaviour
     BlinkAction.performed += FlameBlink;
     RangeSkillAction.performed += RangeSkill;
     NextLevelAction.performed += ExitLevel;
+    PinCreateAction.performed += CreatePin;
+    ZoomMapAction.performed += ZoomMap;
+    ZoomMapAction.canceled += ZoomMap;
+    PanMapAction.performed += WorldMapPan;
+    PanMapAction.canceled += WorldMapPan;
   }
+
+
+
   private void OnDisable()
   {
     movementAction.performed -= Run;
@@ -125,6 +154,11 @@ public class Player : MonoBehaviour
     BlinkAction.performed -= FlameBlink;
     RangeSkillAction.performed -= RangeSkill;
     NextLevelAction.performed -= ExitLevel;
+    PinCreateAction.performed -= CreatePin;
+    ZoomMapAction.performed -= ZoomMap;
+    ZoomMapAction.canceled -= ZoomMap;
+    PanMapAction.performed -= WorldMapPan;
+    PanMapAction.canceled -= WorldMapPan;
   }
   // Start is called before the first frame update
   void Start()
@@ -138,8 +172,7 @@ public class Player : MonoBehaviour
     myPolygonCollider2D = GetComponent<PolygonCollider2D>();
     myAudioSource = GetComponent<AudioSource>();
     trailRenderer = GetComponent<TrailRenderer>();
-    mainCamera = GameObject.Find("Main Camera").GetComponent<Camera>();
-
+    myTransform = GetComponent<Transform>();
     startingGravityScale = myRigidBody2D.gravityScale;
     myAnimator.SetTrigger("DoorOut");
   }
@@ -158,12 +191,123 @@ public class Player : MonoBehaviour
       //Attack();
       //CameraCheck();
 
+
       if (myBoxCollider2D.IsTouchingLayers(LayerMask.GetMask("enemy")))
       {
         PlayerHit();
       }
       //ExitLevel();
     }
+  }
+
+  private void WorldMapPan(InputAction.CallbackContext ctx)
+  {
+    if (ctx.ReadValue<float>() != 0 && mapOn)
+    {
+      StartCoroutine(PanWorldMap(WorldCamera.ScreenToWorldPoint(Mouse.current.position.ReadValue())));
+    }
+
+  }
+
+  private IEnumerator PanWorldMap(Vector3 initialMousePosition)
+  {
+
+    Vector3 differencePos;
+    while (PanMapAction.ReadValue<float>() != 0)
+    {
+
+      if (Physics2D.IsTouching(cameraCollider, confinderCollider))
+      {
+        differencePos = WorldCamera.ScreenToWorldPoint(Mouse.current.position.ReadValue()) - initialMousePosition;
+        WorldCamTracker.position = WorldCamTracker.position - differencePos / 20;
+        yield return waitForFixedUpdate;
+      }
+      else
+      {
+        Debug.Log("Caught");
+        yield return waitForFixedUpdate;
+      }
+
+
+    }
+  }
+
+  private void ZoomMap(InputAction.CallbackContext ctx)
+  {
+    Vector2 ZoomCoordinate = ctx.ReadValue<Vector2>();
+    if (mapOn && ZoomCoordinate.y != 0f)
+    {
+      if (ZoomCoordinate.y < 0 && WorldVcam.m_Lens.OrthographicSize < 11)
+      {
+        WorldVcam.m_Lens.OrthographicSize++;
+      }
+      else if (ZoomCoordinate.y > 0 && WorldVcam.m_Lens.OrthographicSize > 5)
+      {
+        WorldVcam.m_Lens.OrthographicSize--;
+      }
+    }
+
+  }
+  private void CreatePin(InputAction.CallbackContext _)
+  {
+    if (mapOn)
+    {
+      if (newMapPin != null)
+      {
+        Addressables.Release(MapPinHandle);
+        Destroy(newMapPin);
+      }
+      else
+      {
+        Addressables.LoadAssetAsync<GameObject>("Map Marker").Completed +=
+        (AsyncOperationHandle<GameObject> Obj) =>
+        {
+          MapPinHandle = Obj;
+          newMapPin = Obj.Result;
+          //newPinPos = WorldCamera.ViewportToWorldPoint(Mouse.current.position.ReadValue());
+          newPinPos = WorldCamera.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+          Vector3 newPinPos2 = WorldCamera.ScreenToViewportPoint(Mouse.current.position.ReadValue());
+          // Ray ray = WorldCamera.ScreenPointToRay(newPinPos);
+
+          // if (hit = Physics2D.Raycast(newPinPos, transform.forward, Mathf.Infinity))
+          // {
+          //   //Debug.DrawRay(ray.origin, ray.direction * 20, Color.red, 5f);
+          //   Debug.Log("newPinPos == " + newPinPos);
+          //   Debug.Log("hit point ray == " + hit.point);
+          // }
+          // else
+          // {
+          //   Debug.Log("반응없음 왜지?");
+          // }
+          //newPinPos = Mouse.current.position.ReadValue();
+          // mouseTracker = new Vector2(newPinPos.x, newPinPos.y);
+          // Vector2 screenPos = RectTransformUtility.WorldToScreenPoint(WorldCamera, worldMapImage.position);
+          // Debug.Log("screeenPos == " + screenPos);
+          // //RectTransformUtility.ScreenPointToLocalPointInRectangle(worldMapImage, mouseTracker, WorldCamera, out newPinPosTracker);
+          // RectTransformUtility.ScreenPointToLocalPointInRectangle(worldMapImage, screenPos, WorldCamera, out newPinPosTracker);
+          float worldCameraHeight = WorldCamera.orthographicSize * 2f;
+          float worldCameraWidth = worldCameraHeight * WorldCamera.aspect;
+          Vector3 worldCameraCenter = WorldCamera.transform.position;
+          float ratioAdujust = 1 / 1.03f;
+          //Debug.Log("world camera  width : " + worldCameraWidth + " height " + worldCameraHeight);
+          Debug.Log("카메라 상대좌표 (비보정) == " + newPinPos2);
+          //Debug.Log("카메라 상대좌표 (보정) == " + newPinPos2 * ratioAdujust);
+          //Debug.Log(" 월드맵 카메라 중앙 위치 : " + worldCameraCenter);
+          // Debug.Log("newPinPosTracker == " + newPinPosTracker);
+          //newPinPos = UiCamera.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+          //newPinPos = new Vector3(newPinPosTracker.x, newPinPosTracker.y, 0);
+          //Debug.Log("월드캠 기준 위치 : " + WorldCamera.ScreenToWorldPoint(Mouse.current.position.ReadValue()) + "메인캠 기준 위치 : " + mainCamera.ScreenToWorldPoint(Mouse.current.position.ReadValue()));
+          //newPinPos = new Vector3(newPinPosTracker.x, newPinPosTracker.y, 0);
+          newPinPos = new Vector3(worldCameraCenter.x + ((newPinPos2 * ratioAdujust).x - 0.5f) * worldCameraWidth, WorldCamera.transform.position.y + ((newPinPos2 * ratioAdujust).y - 0.5f) * worldCameraHeight, 0);
+          newMapPin = Instantiate(newMapPin, newPinPos, Quaternion.identity);
+        };
+      }
+
+    }
+  }
+  private void moveWorldCamera()
+  {
+
   }
   public void CameraCheck(InputAction.CallbackContext _)
   {
@@ -175,16 +319,13 @@ public class Player : MonoBehaviour
     }
     else
     {
+      WorldCamTracker.position = myTransform.position;
+      WorldVcam.m_Lens.OrthographicSize = 6;
       worldMap.alpha = 0;
+
     }
 
-    if (mapOn)
-    {
-      if (!Physics2D.IsTouching(cameraCollider, confinderCollider))
-      {
-        Debug.Log("camera touches border of confinder");
-      }
-    }
+
 
   }
   public void PlayerHit()
@@ -376,7 +517,8 @@ public class Player : MonoBehaviour
 
   private void Attack(InputAction.CallbackContext ctx)
   {
-
+    //temporary since attack and map pin create uses same key
+    if (mapOn) return;
 
     myAnimator.SetTrigger("Attack");
     myAudioSource.PlayOneShot(attackSFX);

@@ -125,6 +125,33 @@ public partial class @InputMaster : IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Pin create"",
+                    ""type"": ""Button"",
+                    ""id"": ""a4462c73-91ac-4b57-984b-0906a37be236"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Zoom Map"",
+                    ""type"": ""Value"",
+                    ""id"": ""6f7cb8af-1389-4805-85c9-8165625ad2a5"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Pan Map"",
+                    ""type"": ""Value"",
+                    ""id"": ""91514da1-8ac4-4f95-a987-76411cd90047"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
                 }
             ],
             ""bindings"": [
@@ -369,6 +396,39 @@ public partial class @InputMaster : IInputActionCollection2, IDisposable
                     ""action"": ""NextLevel"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a7ca7e33-7233-43b8-a99e-d788261d4a6c"",
+                    ""path"": ""<Keyboard>/p"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""mouse_keyborad"",
+                    ""action"": ""Pin create"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e1f99e0f-5499-40b1-83dd-fb540c04ad17"",
+                    ""path"": ""<Mouse>/scroll"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""mouse_keyborad"",
+                    ""action"": ""Zoom Map"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a41b3e19-3034-4bd6-9ec7-c5191adf93b8"",
+                    ""path"": ""<Mouse>/middleButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""mouse_keyborad"",
+                    ""action"": ""Pan Map"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -405,6 +465,9 @@ public partial class @InputMaster : IInputActionCollection2, IDisposable
         m_Player_Climb = m_Player.FindAction("Climb", throwIfNotFound: true);
         m_Player_Map = m_Player.FindAction("Map", throwIfNotFound: true);
         m_Player_NextLevel = m_Player.FindAction("NextLevel", throwIfNotFound: true);
+        m_Player_Pincreate = m_Player.FindAction("Pin create", throwIfNotFound: true);
+        m_Player_ZoomMap = m_Player.FindAction("Zoom Map", throwIfNotFound: true);
+        m_Player_PanMap = m_Player.FindAction("Pan Map", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -475,6 +538,9 @@ public partial class @InputMaster : IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Climb;
     private readonly InputAction m_Player_Map;
     private readonly InputAction m_Player_NextLevel;
+    private readonly InputAction m_Player_Pincreate;
+    private readonly InputAction m_Player_ZoomMap;
+    private readonly InputAction m_Player_PanMap;
     public struct PlayerActions
     {
         private @InputMaster m_Wrapper;
@@ -490,6 +556,9 @@ public partial class @InputMaster : IInputActionCollection2, IDisposable
         public InputAction @Climb => m_Wrapper.m_Player_Climb;
         public InputAction @Map => m_Wrapper.m_Player_Map;
         public InputAction @NextLevel => m_Wrapper.m_Player_NextLevel;
+        public InputAction @Pincreate => m_Wrapper.m_Player_Pincreate;
+        public InputAction @ZoomMap => m_Wrapper.m_Player_ZoomMap;
+        public InputAction @PanMap => m_Wrapper.m_Player_PanMap;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -532,6 +601,15 @@ public partial class @InputMaster : IInputActionCollection2, IDisposable
                 @NextLevel.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnNextLevel;
                 @NextLevel.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnNextLevel;
                 @NextLevel.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnNextLevel;
+                @Pincreate.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnPincreate;
+                @Pincreate.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnPincreate;
+                @Pincreate.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnPincreate;
+                @ZoomMap.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnZoomMap;
+                @ZoomMap.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnZoomMap;
+                @ZoomMap.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnZoomMap;
+                @PanMap.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnPanMap;
+                @PanMap.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnPanMap;
+                @PanMap.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnPanMap;
             }
             m_Wrapper.m_PlayerActionsCallbackInterface = instance;
             if (instance != null)
@@ -569,6 +647,15 @@ public partial class @InputMaster : IInputActionCollection2, IDisposable
                 @NextLevel.started += instance.OnNextLevel;
                 @NextLevel.performed += instance.OnNextLevel;
                 @NextLevel.canceled += instance.OnNextLevel;
+                @Pincreate.started += instance.OnPincreate;
+                @Pincreate.performed += instance.OnPincreate;
+                @Pincreate.canceled += instance.OnPincreate;
+                @ZoomMap.started += instance.OnZoomMap;
+                @ZoomMap.performed += instance.OnZoomMap;
+                @ZoomMap.canceled += instance.OnZoomMap;
+                @PanMap.started += instance.OnPanMap;
+                @PanMap.performed += instance.OnPanMap;
+                @PanMap.canceled += instance.OnPanMap;
             }
         }
     }
@@ -595,5 +682,8 @@ public partial class @InputMaster : IInputActionCollection2, IDisposable
         void OnClimb(InputAction.CallbackContext context);
         void OnMap(InputAction.CallbackContext context);
         void OnNextLevel(InputAction.CallbackContext context);
+        void OnPincreate(InputAction.CallbackContext context);
+        void OnZoomMap(InputAction.CallbackContext context);
+        void OnPanMap(InputAction.CallbackContext context);
     }
 }
