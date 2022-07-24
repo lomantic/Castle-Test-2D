@@ -8,6 +8,7 @@ using UnityEngine.InputSystem;
 
 public class DisplayInventory : MonoBehaviour
 {
+  [SerializeField] UIStateSystem InventoryManger;
   [SerializeField] InventoryObject inventory;
   public int X_START;
   public int Y_START;
@@ -17,12 +18,19 @@ public class DisplayInventory : MonoBehaviour
 
   [Header("Input Action")]
   [SerializeField] CanvasGroup InventoryScreen;
-  private bool inventoryScreenEnabled = false;
   Dictionary<InventorySlot, GameObject> itemDisplayed = new Dictionary<InventorySlot, GameObject>();
 
   void Start()
   {
     CreateDisplay();
+  }
+  void OnEnable()
+  {
+    InventoryManger.UIStateChangeEvent.AddListener(UpdateDisplay);
+  }
+  void OnDisable()
+  {
+    InventoryManger.UIStateChangeEvent.RemoveListener(UpdateDisplay);
   }
 
   // Update is called once per frame
@@ -31,11 +39,9 @@ public class DisplayInventory : MonoBehaviour
     //UpdateDisplay();
   }
 
-  public void UpdateDisplay(InputAction.CallbackContext _)
+  public void UpdateDisplay(bool screenEnable)
   {
-    inventoryScreenEnabled = !inventoryScreenEnabled;
-
-    if (inventoryScreenEnabled)
+    if (screenEnable)
     {
       InventoryScreen.alpha = 1;
       InventoryScreen.interactable = true;

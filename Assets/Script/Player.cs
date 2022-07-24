@@ -82,6 +82,9 @@ public class Player : MonoBehaviour
   [SerializeField] RectTransform worldMapImage;
   [SerializeField] Transform WorldCamTracker;
 
+  [Header("UI SC")]
+  [SerializeField] UIStateSystem InventoryManger;
+
   [Header("KeyTest")]
   private PlayerInput playerInput;
   private InputAction jumpAction;
@@ -137,7 +140,7 @@ public class Player : MonoBehaviour
     ZoomMapAction.canceled += ZoomMap;
     PanMapAction.performed += WorldMapPan;
     PanMapAction.canceled += WorldMapPan;
-    OpenInventoryAction.performed += _displayInventory.UpdateDisplay;
+    OpenInventoryAction.performed += InventoryUIStateChange;
   }
 
 
@@ -161,7 +164,7 @@ public class Player : MonoBehaviour
     ZoomMapAction.canceled -= ZoomMap;
     PanMapAction.performed -= WorldMapPan;
     PanMapAction.canceled -= WorldMapPan;
-    OpenInventoryAction.performed -= _displayInventory.UpdateDisplay;
+    OpenInventoryAction.performed -= InventoryUIStateChange;
   }
   // Start is called before the first frame update
   void Start()
@@ -201,6 +204,11 @@ public class Player : MonoBehaviour
       }
       //ExitLevel();
     }
+  }
+
+  private void InventoryUIStateChange(InputAction.CallbackContext _)
+  {
+    InventoryManger.ChangeUIState();
   }
   private void OnTriggerEnter2D(Collider2D collison)
   {
