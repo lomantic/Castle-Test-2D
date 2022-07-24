@@ -59,6 +59,9 @@ TagManager:
   - name: Player
     uniqueID: 1092532369
     locked: 0
+  - name: item
+    uniqueID: 1864531929
+    locked: 0
   - name: PlayerSkillATK0
     uniqueID: 1168460645
     locked: 0

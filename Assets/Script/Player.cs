@@ -67,6 +67,7 @@ public class Player : MonoBehaviour
   static public bool castling_possible = false;
   public HitAreaRangeSkill targetOn;
   private bool mapOn = false;
+  [SerializeField] InventoryObject inventory;
   [SerializeField] CinemachineConfiner2D _cache;
 
   [Header("Blink")]
@@ -77,7 +78,7 @@ public class Player : MonoBehaviour
   [SerializeField] PolygonCollider2D confinderCollider;
   [SerializeField] CanvasGroup worldMap;
   [SerializeField] CinemachineVirtualCamera WorldVcam;
-
+  private DisplayInventory _displayInventory;
   [SerializeField] RectTransform worldMapImage;
   [SerializeField] Transform WorldCamTracker;
 
@@ -96,8 +97,7 @@ public class Player : MonoBehaviour
   private InputAction PinCreateAction;
   private InputAction ZoomMapAction;
   private InputAction PanMapAction;
-
-
+  private InputAction OpenInventoryAction;
 
   private void Awake()
   {
@@ -115,6 +115,7 @@ public class Player : MonoBehaviour
     PinCreateAction = playerInput.actions["Pin create"];
     ZoomMapAction = playerInput.actions["Zoom Map"];
     PanMapAction = playerInput.actions["Pan Map"];
+    OpenInventoryAction = playerInput.actions["Open Inventory"];
   }
   private void OnEnable()
   {
@@ -136,6 +137,7 @@ public class Player : MonoBehaviour
     ZoomMapAction.canceled += ZoomMap;
     PanMapAction.performed += WorldMapPan;
     PanMapAction.canceled += WorldMapPan;
+    OpenInventoryAction.performed += _displayInventory.UpdateDisplay;
   }
 
 
@@ -159,6 +161,7 @@ public class Player : MonoBehaviour
     ZoomMapAction.canceled -= ZoomMap;
     PanMapAction.performed -= WorldMapPan;
     PanMapAction.canceled -= WorldMapPan;
+    OpenInventoryAction.performed -= _displayInventory.UpdateDisplay;
   }
   // Start is called before the first frame update
   void Start()
@@ -199,7 +202,18 @@ public class Player : MonoBehaviour
       //ExitLevel();
     }
   }
-
+  private void OnTriggerEnter2D(Collider2D collison)
+  {
+    if (collison.TryGetComponent<Item>(out Item item))
+    {
+      inventory.AddItem(item.item, 1);
+      Destroy(collison.gameObject);
+    }
+  }
+  private void OnApplicationQuit()
+  {
+    inventory.Container.Clear();
+  }
   private void WorldMapPan(InputAction.CallbackContext ctx)
   {
     if (ctx.ReadValue<float>() != 0 && mapOn)

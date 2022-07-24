@@ -152,6 +152,15 @@ public partial class @InputMaster : IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Open Inventory"",
+                    ""type"": ""Button"",
+                    ""id"": ""067aac73-ef93-44db-bd22-cb6468c260df"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -429,6 +438,17 @@ public partial class @InputMaster : IInputActionCollection2, IDisposable
                     ""action"": ""Pan Map"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e0b41749-11c8-473a-a531-0d0088d46a47"",
+                    ""path"": ""<Keyboard>/i"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""mouse_keyborad"",
+                    ""action"": ""Open Inventory"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -468,6 +488,7 @@ public partial class @InputMaster : IInputActionCollection2, IDisposable
         m_Player_Pincreate = m_Player.FindAction("Pin create", throwIfNotFound: true);
         m_Player_ZoomMap = m_Player.FindAction("Zoom Map", throwIfNotFound: true);
         m_Player_PanMap = m_Player.FindAction("Pan Map", throwIfNotFound: true);
+        m_Player_OpenInventory = m_Player.FindAction("Open Inventory", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -541,6 +562,7 @@ public partial class @InputMaster : IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Pincreate;
     private readonly InputAction m_Player_ZoomMap;
     private readonly InputAction m_Player_PanMap;
+    private readonly InputAction m_Player_OpenInventory;
     public struct PlayerActions
     {
         private @InputMaster m_Wrapper;
@@ -559,6 +581,7 @@ public partial class @InputMaster : IInputActionCollection2, IDisposable
         public InputAction @Pincreate => m_Wrapper.m_Player_Pincreate;
         public InputAction @ZoomMap => m_Wrapper.m_Player_ZoomMap;
         public InputAction @PanMap => m_Wrapper.m_Player_PanMap;
+        public InputAction @OpenInventory => m_Wrapper.m_Player_OpenInventory;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -610,6 +633,9 @@ public partial class @InputMaster : IInputActionCollection2, IDisposable
                 @PanMap.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnPanMap;
                 @PanMap.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnPanMap;
                 @PanMap.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnPanMap;
+                @OpenInventory.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnOpenInventory;
+                @OpenInventory.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnOpenInventory;
+                @OpenInventory.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnOpenInventory;
             }
             m_Wrapper.m_PlayerActionsCallbackInterface = instance;
             if (instance != null)
@@ -656,6 +682,9 @@ public partial class @InputMaster : IInputActionCollection2, IDisposable
                 @PanMap.started += instance.OnPanMap;
                 @PanMap.performed += instance.OnPanMap;
                 @PanMap.canceled += instance.OnPanMap;
+                @OpenInventory.started += instance.OnOpenInventory;
+                @OpenInventory.performed += instance.OnOpenInventory;
+                @OpenInventory.canceled += instance.OnOpenInventory;
             }
         }
     }
@@ -685,5 +714,6 @@ public partial class @InputMaster : IInputActionCollection2, IDisposable
         void OnPincreate(InputAction.CallbackContext context);
         void OnZoomMap(InputAction.CallbackContext context);
         void OnPanMap(InputAction.CallbackContext context);
+        void OnOpenInventory(InputAction.CallbackContext context);
     }
 }
