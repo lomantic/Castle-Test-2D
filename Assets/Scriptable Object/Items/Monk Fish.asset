@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 445bb84043c2f8540b03da67f015ae24, type: 3}
   m_Name: Monk Fish
   m_EditorClassIdentifier: 
-  prefab: {fileID: 3965728848896420327, guid: 9fda261efe1497d4d9086bdcf0ac82a6, type: 3}
+  Id: 1
+  uiDisplay: {fileID: 21300000, guid: 4a39cb4b272639541b7bd5ac0649acf7, type: 3}
   type: 0
   description: it's a fish eat..
   restoreHealthValue: 10

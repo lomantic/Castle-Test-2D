@@ -14,15 +14,6 @@ public abstract class UIStateSystem : ScriptableObject
   [System.NonSerialized]
   public UnityEvent<bool> UIStateChangeEvent;
 
-  private void OnEnable()
-  {
-
-    uiEnabled = false;
-    if (UIStateChangeEvent == null)
-    {
-      UIStateChangeEvent = new UnityEvent<bool>();
-    }
-  }
 
   public void ChangeUIState()
   {

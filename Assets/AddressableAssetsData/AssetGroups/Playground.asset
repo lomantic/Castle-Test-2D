@@ -33,6 +33,10 @@ MonoBehaviour:
     m_Address: Map Marker
     m_ReadOnly: 0
     m_SerializedLabels: []
+  - m_GUID: 023180c976d3dd7449d7cc64f443c254
+    m_Address: Inventory Database
+    m_ReadOnly: 0
+    m_SerializedLabels: []
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: c14ec242b5291224e80c82599cacf116, type: 2}
   m_SchemaSet:

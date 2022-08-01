@@ -11,6 +11,7 @@ using Cinemachine;
 
 public class Player : MonoBehaviour
 {
+  public MouseItem mouseItem = new MouseItem();
   [SerializeField] float attackRange = 1f;
   [SerializeField] Transform hurtBox;
   [SerializeField] float runSpeed = 5f;
@@ -68,6 +69,7 @@ public class Player : MonoBehaviour
   public HitAreaRangeSkill targetOn;
   private bool mapOn = false;
   [SerializeField] InventoryObject inventory;
+  [SerializeField] InventoryObject equipmentInventory;
   [SerializeField] CinemachineConfiner2D _cache;
 
   [Header("Blink")]
@@ -84,6 +86,10 @@ public class Player : MonoBehaviour
 
   [Header("UI SC")]
   [SerializeField] UIStateSystem InventoryManger;
+  private bool inventoryUIState = false;
+
+  [Header("Save Load")]
+  private bool isLoaded = false;
 
   [Header("KeyTest")]
   private PlayerInput playerInput;
@@ -101,6 +107,7 @@ public class Player : MonoBehaviour
   private InputAction ZoomMapAction;
   private InputAction PanMapAction;
   private InputAction OpenInventoryAction;
+  private InputAction SaveLoadAction;
 
   private void Awake()
   {
@@ -119,6 +126,7 @@ public class Player : MonoBehaviour
     ZoomMapAction = playerInput.actions["Zoom Map"];
     PanMapAction = playerInput.actions["Pan Map"];
     OpenInventoryAction = playerInput.actions["Open Inventory"];
+    SaveLoadAction = playerInput.actions["Save and Load"];
   }
   private void OnEnable()
   {
@@ -141,6 +149,7 @@ public class Player : MonoBehaviour
     PanMapAction.performed += WorldMapPan;
     PanMapAction.canceled += WorldMapPan;
     OpenInventoryAction.performed += InventoryUIStateChange;
+    SaveLoadAction.performed += SaveLoad;
   }
 
 
@@ -165,6 +174,7 @@ public class Player : MonoBehaviour
     PanMapAction.performed -= WorldMapPan;
     PanMapAction.canceled -= WorldMapPan;
     OpenInventoryAction.performed -= InventoryUIStateChange;
+    SaveLoadAction.performed -= SaveLoad;
   }
   // Start is called before the first frame update
   void Start()
@@ -206,21 +216,47 @@ public class Player : MonoBehaviour
     }
   }
 
+  private void SaveLoad(InputAction.CallbackContext _)
+  {
+    //default isLoaded :false => Load ->Save ->Load ->Save ...
+    if (isLoaded)
+    {
+      Debug.Log("saved");
+      inventory.Save();
+    }
+    else
+    {
+      Debug.Log("Loaded");
+      inventory.Load();
+    }
+    isLoaded = !isLoaded;
+  }
   private void InventoryUIStateChange(InputAction.CallbackContext _)
   {
+    inventoryUIState = !inventoryUIState;
+    if (inventoryUIState)
+    {
+      playerInput.actions.FindActionMap("UI").Enable();
+    }
+    else
+    {
+      playerInput.actions.FindActionMap("UI").Disable();
+    }
+
     InventoryManger.ChangeUIState();
   }
   private void OnTriggerEnter2D(Collider2D collison)
   {
-    if (collison.TryGetComponent<Item>(out Item item))
+    if (collison.TryGetComponent<GroundItem>(out GroundItem item))
     {
-      inventory.AddItem(item.item, 1);
+      inventory.AddItem(new Item(item.item), 1);
       Destroy(collison.gameObject);
     }
   }
   private void OnApplicationQuit()
   {
     inventory.Container.Clear();
+    equipmentInventory.Container.Clear();
   }
   private void WorldMapPan(InputAction.CallbackContext ctx)
   {
