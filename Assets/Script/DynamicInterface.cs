@@ -16,10 +16,10 @@ public class DynamicInterface : UserInterface
   {
     //not necessary but for caution purpose
 
-    itemDisplayed = new Dictionary<GameObject, InventorySlot>();
-    for (int i = 0; i < inventory.Container.Items.Length; i++)
+    slotsOnInterface = new Dictionary<GameObject, InventorySlot>();
+    for (int i = 0; i < inventory.GetSlots.Length; i++)
     {
-      InventorySlot slot = inventory.Container.Items[i];
+      InventorySlot slot = inventory.GetSlots[i];
       var obj = Instantiate(inventoryPrefab, Vector3.zero, Quaternion.identity, transform);
       obj.GetComponent<RectTransform>().localPosition = GetPosition(i);
 
@@ -29,7 +29,7 @@ public class DynamicInterface : UserInterface
       AddEvent(obj, EventTriggerType.EndDrag, delegate { OnDragEnd(obj); });
       AddEvent(obj, EventTriggerType.Drag, delegate { OnDrag(obj); });
 
-      itemDisplayed.Add(obj, slot);
+      slotsOnInterface.Add(obj, slot);
 
     }
 
@@ -40,7 +40,7 @@ public class DynamicInterface : UserInterface
     //   obj.transform.GetChild(0).GetComponentInChildren<Image>().sprite = inventory.database.GetItem[slot.Id].uiDisplay;
     //   obj.GetComponent<RectTransform>().localPosition = GetPosition(i);
     //   obj.GetComponentInChildren<TextMeshProUGUI>().text = slot.amount.ToString("n0");
-    //   itemDisplayed.Add(slot, obj);
+    //   slotsOnInterface.Add(slot, obj);
     // }
 
   }

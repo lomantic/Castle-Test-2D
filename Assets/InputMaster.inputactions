@@ -141,9 +141,18 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Save and Load",
+                    "name": "Load",
                     "type": "Button",
                     "id": "1502975e-b330-4fa0-a3a9-77883a03cb22",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Save",
+                    "type": "Button",
+                    "id": "71af592a-5c08-424b-8be9-ccca8c8933b3",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -444,7 +453,18 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "mouse_keyborad",
-                    "action": "Save and Load",
+                    "action": "Load",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "0110184f-5522-4d38-8f6f-c1c4666a1e65",
+                    "path": "<Keyboard>/quote",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "mouse_keyborad",
+                    "action": "Save",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

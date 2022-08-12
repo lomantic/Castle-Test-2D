@@ -46,7 +46,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d223679a024e2448a2f6ec342e2bd96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  item: {fileID: 11400000, guid: 11b41d91bb4f77f43afd6f12fe5d0e33, type: 2}
+  item: {fileID: 11400000, guid: 747eddbd0dd4c1c42add6beccf9e68e4, type: 2}
 --- !u!58 &767353911368368615
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -141,7 +141,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 2.5, y: 2.5}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1

@@ -9,15 +9,18 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cfb3615a8b3c1d440939d0090e779bba, type: 3}
+  m_Script: {fileID: 11500000, guid: 698495ad1dc41d543b5998e3743c5e7f, type: 3}
   m_Name: Helmet
   m_EditorClassIdentifier: 
-  Id: 8
   uiDisplay: {fileID: 21300000, guid: fd6e4fc32c78509458fc45ea4a478ba8, type: 3}
-  type: 1
-  description: hat sort of...
-  buffs:
-  - attribute: 0
-    value: 0
-    min: 12
-    max: 54
+  stackable: 0
+  type: 0
+  description: hat kind of
+  data:
+    Name: HELMET
+    Id: KEY_HELMET
+    buffs:
+    - attribute: 1
+      value: 0
+      min: 20
+      max: 30

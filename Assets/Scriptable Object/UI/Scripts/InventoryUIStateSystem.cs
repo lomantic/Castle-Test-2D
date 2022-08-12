@@ -27,7 +27,7 @@ public class InventoryUIStateSystem : UIStateSystem
 
   }
 
-  public void StoreNewItem()
+  public void InventoryDataChanged()
   {
     AddItemEvent.Invoke(true);
   }

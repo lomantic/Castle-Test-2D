@@ -9,10 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7aadead9b267fc44aa860b69b86193d1, type: 3}
-  m_Name: metal
+  m_Script: {fileID: 11500000, guid: ae566fd2d87049344a9db7410da41e6c, type: 3}
+  m_Name: test1
   m_EditorClassIdentifier: 
-  Id: 0
-  uiDisplay: {fileID: 21300000, guid: 3e4fcc84a0ac95b429c56452575f6021, type: 3}
-  type: 2
-  description: something looks like a bone maybe it's a metal
+  someInt: 1
+  setSomeIntHere: 1

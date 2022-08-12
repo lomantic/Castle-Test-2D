@@ -11,7 +11,6 @@ using Cinemachine;
 
 public class Player : MonoBehaviour
 {
-  public MouseItem mouseItem = new MouseItem();
   [SerializeField] float attackRange = 1f;
   [SerializeField] Transform hurtBox;
   [SerializeField] float runSpeed = 5f;
@@ -68,8 +67,7 @@ public class Player : MonoBehaviour
   static public bool castling_possible = false;
   public HitAreaRangeSkill targetOn;
   private bool mapOn = false;
-  [SerializeField] InventoryObject inventory;
-  [SerializeField] InventoryObject equipmentInventory;
+
   [SerializeField] CinemachineConfiner2D _cache;
 
   [Header("Blink")]
@@ -80,7 +78,7 @@ public class Player : MonoBehaviour
   [SerializeField] PolygonCollider2D confinderCollider;
   [SerializeField] CanvasGroup worldMap;
   [SerializeField] CinemachineVirtualCamera WorldVcam;
-  private DisplayInventory _displayInventory;
+  //private DisplayInventory _displayInventory;
   [SerializeField] RectTransform worldMapImage;
   [SerializeField] Transform WorldCamTracker;
 
@@ -89,7 +87,13 @@ public class Player : MonoBehaviour
   private bool inventoryUIState = false;
 
   [Header("Save Load")]
-  private bool isLoaded = false;
+  //private bool isLoaded = false;
+  [Header("Attribute")]
+  public Attribute[] attributes;
+  [SerializeField] InventoryObject inventory;
+  [SerializeField] InventoryObject equipmentInventory;
+
+
 
   [Header("KeyTest")]
   private PlayerInput playerInput;
@@ -107,7 +111,8 @@ public class Player : MonoBehaviour
   private InputAction ZoomMapAction;
   private InputAction PanMapAction;
   private InputAction OpenInventoryAction;
-  private InputAction SaveLoadAction;
+  private InputAction LoadAction;
+  private InputAction saveAction;
 
   private void Awake()
   {
@@ -126,7 +131,8 @@ public class Player : MonoBehaviour
     ZoomMapAction = playerInput.actions["Zoom Map"];
     PanMapAction = playerInput.actions["Pan Map"];
     OpenInventoryAction = playerInput.actions["Open Inventory"];
-    SaveLoadAction = playerInput.actions["Save and Load"];
+    LoadAction = playerInput.actions["Load"];
+    saveAction = playerInput.actions["Save"];
   }
   private void OnEnable()
   {
@@ -149,7 +155,8 @@ public class Player : MonoBehaviour
     PanMapAction.performed += WorldMapPan;
     PanMapAction.canceled += WorldMapPan;
     OpenInventoryAction.performed += InventoryUIStateChange;
-    SaveLoadAction.performed += SaveLoad;
+    LoadAction.performed += GetLoad;
+    saveAction.performed += GetSave;
   }
 
 
@@ -174,7 +181,8 @@ public class Player : MonoBehaviour
     PanMapAction.performed -= WorldMapPan;
     PanMapAction.canceled -= WorldMapPan;
     OpenInventoryAction.performed -= InventoryUIStateChange;
-    SaveLoadAction.performed -= SaveLoad;
+    LoadAction.performed -= GetLoad;
+    saveAction.performed -= GetSave;
   }
   // Start is called before the first frame update
   void Start()
@@ -191,7 +199,79 @@ public class Player : MonoBehaviour
     myTransform = GetComponent<Transform>();
     startingGravityScale = myRigidBody2D.gravityScale;
     myAnimator.SetTrigger("DoorOut");
+
+    for (int i = 0; i < attributes.Length; i++)
+    {
+      attributes[i].SetParent(this);
+    }
+    for (int i = 0; i < equipmentInventory.GetSlots.Length; i++)
+    {
+      equipmentInventory.GetSlots[i].OnBeforeUpdate += OnBeforeSlotUpdate;
+      equipmentInventory.GetSlots[i].OnAfterUpdate += OnAfterSlotUpdate;
+    }
   }
+  private void OnBeforeSlotUpdate(InventorySlot _slot)
+  {
+    if (_slot.ItemObject == null)
+    {
+      return;
+    }
+    switch (_slot.parent.inventory.type)
+    {
+      case InterfaceType.Equipment:
+        Debug.Log(string.Concat("Removed ", _slot.ItemObject, " on ", _slot.parent.inventory.type, " Allowed item : ", string.Join(", ", _slot.AllowedItems)));
+        for (int i = 0; i < _slot.item.buffs.Length; i++)
+        {
+          for (int j = 0; j < attributes.Length; j++)
+          {
+            if (attributes[j].type == _slot.item.buffs[i].attribute)
+            {
+              attributes[j].value.RemoveModifier(_slot.item.buffs[i]);
+            }
+          }
+        }
+        break;
+      case InterfaceType.Inventory:
+        break;
+      case InterfaceType.Chest:
+        break;
+      default:
+        break;
+    }
+  }
+  private void OnAfterSlotUpdate(InventorySlot _slot)
+  {
+    if (_slot.ItemObject == null)
+    {
+      return;
+    }
+    switch (_slot.parent.inventory.type)
+    {
+      case InterfaceType.Equipment:
+        Debug.Log(string.Concat("Placed ", (_slot.ItemObject == null ? "nothing " : _slot.ItemObject), " on ", _slot.parent.inventory.type, " Allowed item : ", string.Join(", ", _slot.AllowedItems)));
+
+        for (int i = 0; i < _slot.item.buffs.Length; i++)
+        {
+          for (int j = 0; j < attributes.Length; j++)
+          {
+            if (attributes[j].type == _slot.item.buffs[i].attribute)
+            {
+              attributes[j].value.AddModifier(_slot.item.buffs[i]);
+            }
+          }
+        }
+
+        break;
+      case InterfaceType.Inventory:
+        break;
+      case InterfaceType.Chest:
+        break;
+      default:
+        break;
+    }
+  }
+
+
 
   // Update is called once per frame
   void Update()
@@ -216,20 +296,21 @@ public class Player : MonoBehaviour
     }
   }
 
-  private void SaveLoad(InputAction.CallbackContext _)
+
+
+  private void GetSave(InputAction.CallbackContext _)
   {
-    //default isLoaded :false => Load ->Save ->Load ->Save ...
-    if (isLoaded)
-    {
-      Debug.Log("saved");
-      inventory.Save();
-    }
-    else
-    {
-      Debug.Log("Loaded");
-      inventory.Load();
-    }
-    isLoaded = !isLoaded;
+
+    Debug.Log("Saved");
+    inventory.Save();
+    equipmentInventory.Save();
+  }
+  private void GetLoad(InputAction.CallbackContext _)
+  {
+
+    Debug.Log("Loaded");
+    inventory.Load();
+    equipmentInventory.Load();
   }
   private void InventoryUIStateChange(InputAction.CallbackContext _)
   {
@@ -249,15 +330,27 @@ public class Player : MonoBehaviour
   {
     if (collison.TryGetComponent<GroundItem>(out GroundItem item))
     {
-      inventory.AddItem(new Item(item.item), 1);
-      Destroy(collison.gameObject);
+      Debug.Log("이름:: " + item.item.data.Name);
+      if (inventory.AddItem(new Item(item.item), 1))
+      {
+        Destroy(collison.gameObject);
+      }
+
     }
   }
+
+  public void AttributeModified(Attribute attribute)
+  {
+    Debug.Log(string.Concat(attribute.type, " was Updated Value : ", attribute.value.ModifiedValue));
+  }
+
   private void OnApplicationQuit()
   {
-    inventory.Container.Clear();
-    equipmentInventory.Container.Clear();
+    inventory.Clear();
+    equipmentInventory.Clear();
   }
+
+
   private void WorldMapPan(InputAction.CallbackContext ctx)
   {
     if (ctx.ReadValue<float>() != 0 && mapOn)
@@ -717,3 +810,22 @@ public class Player : MonoBehaviour
   }
 }
 
+[System.Serializable]
+public class Attribute
+{
+  [System.NonSerialized]
+  public Player parent;
+  public Attributes type;
+  public ModifiableInt value;
+
+  public void SetParent(Player _parent)
+  {
+    parent = _parent;
+    value = new ModifiableInt(AttributeModified);
+  }
+  public void AttributeModified()
+  {
+    parent.AttributeModified(this);
+  }
+
+}

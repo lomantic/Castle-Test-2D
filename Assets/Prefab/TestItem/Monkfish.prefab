@@ -78,7 +78,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 2.56, y: 2.56}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -130,7 +130,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d223679a024e2448a2f6ec342e2bd96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  item: {fileID: 11400000, guid: 4c5006a79b6342c47a611d28d28c6683, type: 2}
+  item: {fileID: 11400000, guid: 8475ef598fd5f3d418e5c6cb96892ea5, type: 2}
 --- !u!58 &836231599207707718
 CircleCollider2D:
   m_ObjectHideFlags: 0
